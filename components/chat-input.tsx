@@ -1,4 +1,3 @@
-import { CoreMessage } from "ai";
 import { readStreamableValue } from "ai/rsc";
 import { continueConversation } from "@/lib/actions/chat";
 import { Input } from "@/components/ui/input";
@@ -6,7 +5,6 @@ import React from "react";
 import { Button } from "./ui/button";
 import { ArrowUpIcon } from "@radix-ui/react-icons";
 import { createMessage } from "@/lib/actions/messages";
-import LoadingIcon from "./loading";
 import { IMessageWithId } from "@/lib/types";
 
 interface ChatInputProps {

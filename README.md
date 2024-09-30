@@ -1,9 +1,9 @@
-# Soham AI Powered by Mistral
+# Soham AI Powered by Gemini
 
 ## Features
 
 - Supabase auth, register, signin, signout, middleware
-- Mistral AI integration
+- Gemini AI integration
 - Streaming response
 - Messages stored in supabase
 - Custom context added with my (Soham) info
@@ -14,7 +14,7 @@
 - Next.js, server actions
 - Typescript
 - Supabase, supabase auth, supabase ssr
-- Mistral API
+- Gemini API
 - AI SDK by vercel
 - Tailwind CSS
 - Shadcn UI

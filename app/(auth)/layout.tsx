@@ -1,4 +1,3 @@
-import { getUser } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 

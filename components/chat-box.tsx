@@ -6,9 +6,6 @@ import React from "react";
 import ChatMessage from "@/components/chat-message";
 import ChatInput from "@/components/chat-input";
 
-// export const dynamic = "force-dynamic";
-// export const maxDuration = 30;
-
 export default function ChatBox({ dbMessages }: { dbMessages: CoreMessage[] }) {
   const [messages, setMessages] = React.useState<CoreMessage[]>(dbMessages);
 

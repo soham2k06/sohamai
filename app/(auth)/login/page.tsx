@@ -1,9 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 
-import { login } from "@/lib/actions/auth";
+import { forgotPassword, login } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function LoginForm() {
+  const [email, setEmail] = useState<string>("");
   const [pending, startTransition] = useTransition();
 
   return (
@@ -41,6 +42,8 @@ export default function LoginForm() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -57,6 +60,11 @@ export default function LoginForm() {
             </Button>
           </div>
         </form>
+        <div className="flex justify-end">
+          <Button variant="link" onClick={() => forgotPassword(email)}>
+            Forget password?
+          </Button>
+        </div>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/signup" className="underline">

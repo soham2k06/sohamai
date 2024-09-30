@@ -57,6 +57,14 @@ export async function signout() {
   }
 }
 
+export async function forgotPassword(email: string) {
+  const supabase = createClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+  if (error) throw new Error(error.message);
+}
+
 export async function getUser() {
   // NOTE: Use only when user is authenticated
 

@@ -38,7 +38,7 @@ const features: FeatureProps[] = [
   {
     Icon: <CubeIcon className="size-8" />,
     title: "Chatbot",
-    description: "Fast and responsive chatbot, powered by Mistral AI model",
+    description: "Fast and responsive chatbot, powered by Gemini AI model",
   },
   {
     Icon: <MixerVerticalIcon className="size-8" />,
@@ -67,7 +67,7 @@ export default function Hero() {
             AI using{" "}
             <h2 className="inline">
               <span className="inline bg-gradient-to-r from-primary  to-primary/70 text-transparent bg-clip-text">
-                Mistral
+                Gemini
               </span>{" "}
               Model
             </h2>
@@ -80,7 +80,7 @@ export default function Hero() {
 
           <div className="flex flex-wrap gap-2">
             <Button className="w-full md:w-1/3" asChild>
-              <Link href="/chat">Get Started</Link>
+              <Link href="/public-chat">Get Started</Link>
             </Button>
             <Button variant="outline" className="max-md:w-full gap-2" asChild>
               <a href="https://github.com/soham2k06/sohamai" target="_blank">
@@ -201,8 +201,8 @@ export default function Hero() {
                 <div className="space-y-4">
                   {[
                     "No credit card required",
-                    "Free till 26 July",
-                    "Mistral Small Latest",
+                    "Free forever",
+                    "Gemini Pro 1.0",
                   ].map((benefit: string) => (
                     <span key={benefit} className="flex items-center">
                       <CheckIcon className="text-green-500 size-5" />
