@@ -4,13 +4,12 @@ import { createStreamableValue } from "ai/rsc";
 import { CoreMessage, streamText } from "ai";
 import { createMessage } from "./messages";
 import { google } from "@ai-sdk/google";
+import { systemMessageContent } from "../constants";
 
 export async function continueConversation(
   messages: CoreMessage[],
   storeToDB = true
 ) {
-  const systemMessageContent = process.env.NEXT_PUBLIC_SYSTEM_MESSAGE_CONTENT;
-
   const systemMessage: CoreMessage | null = systemMessageContent
     ? {
         role: "assistant",
