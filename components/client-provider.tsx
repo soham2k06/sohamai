@@ -11,12 +11,7 @@ function ClientProvider({ children }: PropsWithChildren) {
       defaultTheme="dark"
       disableTransitionOnChange
     >
-      <AppProgressBar
-        shallowRouting
-        color="#1a57db"
-        height="4px"
-        // options={{ showSpinner: false }}
-      />
+      <AppProgressBar shallowRouting color="#1a57db" height="4px" />
       {children}
     </ThemeProvider>
   );

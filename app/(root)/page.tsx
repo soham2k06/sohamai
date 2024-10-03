@@ -30,12 +30,6 @@ interface FeatureProps {
 
 const features: FeatureProps[] = [
   {
-    Icon: <LockClosedIcon className="size-8" />,
-    title: "Authentication",
-    description:
-      "Secure and reliable authentication system, built with supabase",
-  },
-  {
     Icon: <CubeIcon className="size-8" />,
     title: "Chatbot",
     description: "Fast and responsive chatbot, powered by Gemini AI model",

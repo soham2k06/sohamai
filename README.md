@@ -2,10 +2,8 @@
 
 ## Features
 
-- Supabase auth, register, signin, signout, middleware
 - Gemini AI integration
 - Streaming response
-- Messages stored in supabase
 - Custom context added with my (Soham) info
 - Error handling, loading handling
 
@@ -13,7 +11,6 @@
 
 - Next.js, server actions
 - Typescript
-- Supabase, supabase auth, supabase ssr
 - Gemini API
 - AI SDK by vercel
 - Tailwind CSS

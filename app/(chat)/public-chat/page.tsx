@@ -50,7 +50,7 @@ function PublicChatPage() {
       },
     ]);
 
-    const result = await continueConversation(newMessages, false);
+    const result = await continueConversation(newMessages);
 
     for await (const content of readStreamableValue(result)) {
       const newMessagesToPass = newMessages.filter(
@@ -87,7 +87,7 @@ function PublicChatPage() {
         },
       ]);
 
-      const result = await continueConversation([initialMessage], false);
+      const result = await continueConversation([initialMessage]);
 
       for await (const content of readStreamableValue(result)) {
         setMessages([
