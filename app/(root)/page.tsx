@@ -74,7 +74,7 @@ export default function Hero() {
 
           <div className="flex flex-wrap gap-2">
             <Button className="w-full md:w-1/3" asChild>
-              <Link href="/public-chat">Get Started</Link>
+              <Link href="/chat">Get Started</Link>
             </Button>
             <Button variant="outline" className="max-md:w-full gap-2" asChild>
               <a href="https://github.com/soham2k06/sohamai" target="_blank">
