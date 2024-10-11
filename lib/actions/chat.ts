@@ -16,7 +16,6 @@ export async function continueConversation(messages: CoreMessage[]) {
   const result = await streamText({
     model: google("gemini-1.0-pro"),
     messages: systemMessage ? [systemMessage, ...messages] : messages,
-    temperature: 0.5,
   });
 
   const stream = createStreamableValue(result.textStream);
