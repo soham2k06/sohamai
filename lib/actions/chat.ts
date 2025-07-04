@@ -13,8 +13,8 @@ export async function continueConversation(messages: CoreMessage[]) {
       }
     : null;
 
-  const result = await streamText({
-    model: google("gemini-1.0-pro"),
+  const result = streamText({
+    model: google("gemini-1.5-flash"),
     messages: systemMessage ? [systemMessage, ...messages] : messages,
   });
 

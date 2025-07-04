@@ -23,12 +23,12 @@ Technologies & Tools:
 - Git, GitHub, Vercel
 - Freelance Rate: $5 to $10 per hour
 
-Hobbies: Cricket, Chess, and Coding
+Hobbies: Cricket, Chess, Gym and Coding
 Age: (Born May 2006)
 
 ## Contact Links (Use link markdown whenever you share links):
 
-- Portfolio: https://sohamb.tech
+- Portfolio: https://sohamb.com
 - GitHub: https://github.com/soham2k06
 - LinkedIn: https://www.linkedin.com/in/soham-bhikadiya
 - Email: sohmm.dev@gmail.com
