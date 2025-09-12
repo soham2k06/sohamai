@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +16,6 @@ import {
   GlobeIcon,
   LightningBoltIcon,
   LinkedInLogoIcon,
-  LockClosedIcon,
   MixerVerticalIcon,
 } from "@radix-ui/react-icons";
 import Link from "next/link";
@@ -88,28 +86,11 @@ export default function Hero() {
         {/* Hero cards sections */}
         <div className="z-10">
           <div className="hidden lg:flex flex-row flex-wrap gap-8 relative w-[700px] h-[500px]">
-            {/* Testimonial */}
-            <Card className="absolute w-[340px] -top-[15px] drop-shadow-xl shadow-background/10">
-              <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                <Avatar>
-                  <AvatarImage alt="" src="https://github.com/shadcn.png" />
-                  <AvatarFallback>SH</AvatarFallback>
-                </Avatar>
-
-                <div className="flex flex-col">
-                  <CardTitle className="text-lg">John Doe React</CardTitle>
-                  <CardDescription>@john_doe</CardDescription>
-                </div>
-              </CardHeader>
-
-              <CardContent>Awesome work!</CardContent>
-            </Card>
-
             {/* Team */}
             <Card className="absolute right-[20px] top-4 w-80 flex flex-col justify-center items-center drop-shadow-xl shadow-background/10">
               <CardHeader className="mt-8 flex justify-center items-center pb-2">
                 <img
-                  src="/soham.png"
+                  src="/soham.jpg"
                   alt="user avatar"
                   className="absolute -top-12 rounded-full size-24 aspect-square object-cover"
                 />
@@ -240,7 +221,7 @@ export default function Hero() {
           the latest technologies and is highly scalable.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map(({ Icon, title, description }: FeatureProps) => (
             <Card key={title} className="bg-card">
               <CardHeader>
