@@ -1,103 +1,127 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import ChatMessage from "@/components/chat-message";
-import { IMessageWithId } from "@/lib/types";
-import { continueConversation } from "@/lib/actions/chat";
-import { readStreamableValue } from "ai/rsc";
+import AutosizeTextarea from "@/components/ui/autosize-textarea";
 import { Button } from "@/components/ui/button";
 import { ArrowUpIcon } from "@radix-ui/react-icons";
-import AutosizeTextarea from "@/components/ui/autosize-textarea";
+import { CoreMessage } from "@/lib/types";
 
-function PublicChatPage() {
-  const [input, setInput] = React.useState("");
+async function streamChatResponse(
+  history: CoreMessage[],
+  onChunk?: (chunk: string) => void
+) {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    body: JSON.stringify({ history }),
+  });
 
-  const [isLoading, setIsLoading] = React.useState(false);
+  if (!res.body) throw new Error("No response body from server.");
 
-  const [messages, setMessages] = React.useState<IMessageWithId[]>([]);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let accumulated = "";
 
-  const scrollRef = React.useRef<HTMLUListElement>(null);
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
 
-  React.useEffect(() => {
+    const chunk = decoder.decode(value, { stream: true });
+    accumulated += chunk;
+
+    if (onChunk) onChunk(chunk);
+  }
+
+  reader.releaseLock();
+  return accumulated;
+}
+
+export default function PublicChatPage() {
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<CoreMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const scrollRef = useRef<HTMLUListElement>(null);
+  const initRef = useRef(false); // prevent double init in dev
+
+  // Auto-scroll on messages update
+  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // Handle user sending message
   async function handleGenerate(
     e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent
   ) {
     e.preventDefault();
+    if (!input || isLoading) return;
 
-    if (isLoading) return;
-    if (!input) return;
-
-    const newMsg: IMessageWithId = { content: input, role: "user" };
-    const newMessages: IMessageWithId[] = [...messages, newMsg];
-
-    setMessages(newMessages);
+    const userMsg: CoreMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
-
     setIsLoading(true);
 
-    setMessages([
-      ...newMessages,
-      {
-        id: "loading-msg",
-        role: "assistant",
-        content: "Typing...",
-      },
-    ]);
+    // Temporary loading message
+    const loadingMsg: CoreMessage = {
+      id: "loading-msg",
+      role: "model",
+      content: "",
+    };
+    setMessages((prev) => [...prev, loadingMsg]);
 
-    const result = await continueConversation(newMessages);
+    // Capture only the conversation history (exclude loading message)
+    const history = [...messages, userMsg];
 
-    for await (const content of readStreamableValue(result)) {
-      const newMessagesToPass = newMessages.filter(
-        (msg) => msg.id !== "loading-msg"
+    await streamChatResponse(history, (chunk) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === "loading-msg"
+            ? { ...msg, content: msg.content + chunk } // append chunk
+            : msg
+        )
       );
+    });
 
-      setMessages([
-        ...newMessagesToPass,
-        {
-          role: "assistant",
-          content: content as string,
-        },
-      ]);
-    }
+    // Remove loading-msg ID (optional, or keep it with final content)
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === "loading-msg" ? { ...msg, id: undefined } : msg
+      )
+    );
 
     setIsLoading(false);
   }
 
+  // Initial message on mount
   useEffect(() => {
-    async function init() {
-      const initialMessage: IMessageWithId = {
-        id: "initial-msg",
-        content: "Introduce yourself in one short sentence.",
-        role: "user",
-      };
+    if (initRef.current) return; // prevent double call
+    initRef.current = true;
 
+    async function init() {
       setIsLoading(true);
 
-      setMessages([
-        {
-          id: "loading-msg",
-          role: "assistant",
-          content: "Typing...",
-        },
-      ]);
+      const initialUserMsg: CoreMessage = {
+        role: "user",
+        content: "Introduce yourself in one short sentence.",
+        id: "initial-msg",
+      };
 
-      const result = await continueConversation([initialMessage]);
+      const loadingMsg: CoreMessage = {
+        id: "loading-msg",
+        role: "model",
+        content: "Typing...",
+      };
+      setMessages([initialUserMsg, loadingMsg]);
 
-      for await (const content of readStreamableValue(result)) {
-        setMessages([
-          initialMessage,
-          {
-            role: "assistant",
-            content: content as string,
-          },
-        ]);
-      }
+      await streamChatResponse([initialUserMsg], (chunk) => {
+        setMessages([initialUserMsg, { role: "model", content: chunk }]);
+      });
+
+      // Remove loading-msg ID
+      setMessages((prev) => prev.filter((msg) => msg.id !== "loading-msg"));
 
       setIsLoading(false);
     }
@@ -109,7 +133,7 @@ function PublicChatPage() {
     <div className="flex flex-col w-full pt-4 mx-auto flex-1 h-full justify-between">
       <ul className="mb-4 space-y-4 overflow-y-auto" ref={scrollRef}>
         {messages
-          .filter((msg) => (msg as IMessageWithId).id !== "initial-msg")
+          .filter((msg) => msg.id !== "initial-msg")
           .map((m, i) => (
             <ChatMessage key={i} msg={m} />
           ))}
@@ -149,5 +173,3 @@ function PublicChatPage() {
     </div>
   );
 }
-
-export default PublicChatPage;

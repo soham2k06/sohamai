@@ -2,9 +2,9 @@ import React from "react";
 import Markdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { IMessageWithId } from "@/lib/types";
+import { CoreMessage } from "@/lib/types";
 
-function ChatMessage({ msg }: { msg: IMessageWithId }) {
+function ChatMessage({ msg }: { msg: CoreMessage }) {
   const isLoading = msg.id === "loading-msg";
 
   return (
@@ -16,7 +16,7 @@ function ChatMessage({ msg }: { msg: IMessageWithId }) {
         }
       )}
     >
-      {msg.role === "assistant" && (
+      {msg.role === "model" && (
         <Avatar className="items-center bg-muted justify-center">
           <AvatarImage src="/soham-ai.png" alt="Soham" />
           <AvatarFallback>SB</AvatarFallback>
@@ -26,14 +26,14 @@ function ChatMessage({ msg }: { msg: IMessageWithId }) {
         className={cn({
           "bg-muted text-foreground rounded-br-none p-2 rounded-lg":
             msg.role === "user",
-          "py-2": msg.role === "assistant",
+          "py-2": msg.role === "model",
         })}
       >
         {isLoading ? (
           <div className="bg-muted-foreground size-6 rounded-full animate-pulse"></div>
         ) : (
-          <Markdown className="leading-8 prose text-foreground/75">
-            {msg.content as string}
+          <Markdown className="leading-8 prose dark:prose-invert">
+            {msg.content}
           </Markdown>
         )}
       </div>
