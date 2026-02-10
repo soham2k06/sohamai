@@ -10,7 +10,7 @@ import { CoreMessage } from "@/lib/types";
 
 async function streamChatResponse(
   history: CoreMessage[],
-  onChunk?: (chunk: string) => void
+  onChunk?: (chunk: string) => void,
 ) {
   const res = await fetch("/api/chat", {
     method: "POST",
@@ -54,7 +54,7 @@ export default function PublicChatPage() {
 
   // Handle user sending message
   async function handleGenerate(
-    e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent
+    e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent,
   ) {
     e.preventDefault();
     if (!input || isLoading) return;
@@ -80,16 +80,16 @@ export default function PublicChatPage() {
         prev.map((msg) =>
           msg.id === "loading-msg"
             ? { ...msg, content: msg.content + chunk } // append chunk
-            : msg
-        )
+            : msg,
+        ),
       );
     });
 
     // Remove loading-msg ID (optional, or keep it with final content)
     setMessages((prev) =>
       prev.map((msg) =>
-        msg.id === "loading-msg" ? { ...msg, id: undefined } : msg
-      )
+        msg.id === "loading-msg" ? { ...msg, id: undefined } : msg,
+      ),
     );
 
     setIsLoading(false);

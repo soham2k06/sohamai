@@ -90,7 +90,7 @@ export default function Hero() {
             <Card className="absolute right-[20px] top-4 w-80 flex flex-col justify-center items-center drop-shadow-xl shadow-background/10">
               <CardHeader className="mt-8 flex justify-center items-center pb-2">
                 <img
-                  src="/soham.jpg"
+                  src="/me.jpeg"
                   alt="user avatar"
                   className="absolute -top-12 rounded-full size-24 aspect-square object-cover"
                 />
