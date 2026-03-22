@@ -10,31 +10,65 @@ import { CoreMessage } from "@/lib/types";
 
 async function streamChatResponse(
   history: CoreMessage[],
+
   onChunk?: (chunk: string) => void,
+  onError?: (message: string) => void,
 ) {
-  const res = await fetch("/api/chat", {
-    method: "POST",
-    body: JSON.stringify({ history }),
-  });
+  let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
-  if (!res.body) throw new Error("No response body from server.");
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ history }),
+    });
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let accumulated = "";
+    if (!res.ok) {
+      let message = `Request failed (${res.status})`;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+      try {
+        const data = await res.json();
+        if (data?.error?.message) {
+          message = data.error.message;
+        }
+      } catch {
+        // try text fallback instead of using err.message
+        try {
+          const text = await res.text();
+          if (text) message = text;
+        } catch {}
+      }
 
-    const chunk = decoder.decode(value, { stream: true });
-    accumulated += chunk;
+      onError?.(message);
+      return;
+    }
 
-    if (onChunk) onChunk(chunk);
+    if (!res.body) {
+      onError?.("Empty response from server");
+      return;
+    }
+
+    reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      onChunk?.(chunk);
+    }
+  } catch (err) {
+    if ((err as Error).name === "AbortError") return;
+
+    const message = err instanceof Error ? err.message : "Something went wrong";
+
+    onError?.(message);
+  } finally {
+    reader?.releaseLock();
   }
-
-  reader.releaseLock();
-  return accumulated;
 }
 
 export default function PublicChatPage() {
@@ -57,14 +91,17 @@ export default function PublicChatPage() {
     e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent,
   ) {
     e.preventDefault();
+
     if (!input || isLoading) return;
 
     const userMsg: CoreMessage = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMsg]);
+
     setInput("");
     setIsLoading(true);
 
-    // Temporary loading message
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
+
     const loadingMsg: CoreMessage = {
       id: "loading-msg",
       role: "model",
@@ -72,27 +109,35 @@ export default function PublicChatPage() {
     };
     setMessages((prev) => [...prev, loadingMsg]);
 
-    // Capture only the conversation history (exclude loading message)
-    const history = [...messages, userMsg];
+    try {
+      await streamChatResponse(
+        updatedMessages,
+        (chunk) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === "loading-msg"
+                ? { ...msg, content: msg.content + chunk }
+                : msg,
+            ),
+          );
+        },
+        (errorMessage) => {
+          alert(errorMessage);
 
-    await streamChatResponse(history, (chunk) => {
+          // remove loading message
+          setMessages((prev) => prev.filter((msg) => msg.id !== "loading-msg"));
+        },
+      );
+
+      // finalize message only if stream succeeded
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === "loading-msg"
-            ? { ...msg, content: msg.content + chunk } // append chunk
-            : msg,
+          msg.id === "loading-msg" ? { ...msg, id: undefined } : msg,
         ),
       );
-    });
-
-    // Remove loading-msg ID (optional, or keep it with final content)
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === "loading-msg" ? { ...msg, id: undefined } : msg,
-      ),
-    );
-
-    setIsLoading(false);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   // Initial message on mount
@@ -116,9 +161,22 @@ export default function PublicChatPage() {
       };
       setMessages([initialUserMsg, loadingMsg]);
 
-      await streamChatResponse([initialUserMsg], (chunk) => {
-        setMessages([initialUserMsg, { role: "model", content: chunk }]);
-      });
+      let accumulated = "";
+
+      await streamChatResponse(
+        [initialUserMsg],
+        (chunk) => {
+          accumulated += chunk;
+          setMessages([
+            initialUserMsg,
+            { role: "model", content: accumulated },
+          ]);
+        },
+        (errorMessage) => {
+          alert(errorMessage);
+          setMessages([initialUserMsg]);
+        },
+      );
 
       // Remove loading-msg ID
       setMessages((prev) => prev.filter((msg) => msg.id !== "loading-msg"));
