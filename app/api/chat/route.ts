@@ -1,8 +1,9 @@
 import { NextRequest } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import { Groq } from "groq-sdk";
 import { embed } from "@/lib/embed";
 import { qdrant } from "@/lib/qdrant";
 import { systemMessageContent } from "@/lib/constants";
+import { ChatCompletionUserMessageParam } from "groq-sdk/resources/chat/completions";
 
 interface QdrantChunk {
   id: string;
@@ -21,16 +22,57 @@ interface QdrantChunk {
   };
 }
 
-const GEMINI_API_KEY = process.env.GOOGLE_GENERATIVE_AI_API_KEY!;
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const systemPrompt = `${systemMessageContent}
 You must ONLY answer using the provided context.
 If the answer is not in the context, say "I don't know".`;
 
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  return "Unknown error";
+type ApiErrorPayload = {
+  error: {
+    message: string;
+    type?: string;
+    code?: string;
+  };
+};
+
+function normalizeError(error: unknown): {
+  status: number;
+  payload: ApiErrorPayload;
+} {
+  const err = error as {
+    message?: string;
+    status?: number;
+    code?: string;
+    type?: string;
+    error?: {
+      message?: string;
+      type?: string;
+      code?: string;
+    };
+  };
+
+  const message =
+    err?.error?.message ??
+    err?.message ??
+    "Unexpected error while processing chat request.";
+
+  const type = err?.error?.type ?? err?.type;
+  const code = err?.error?.code ?? err?.code;
+
+  const status =
+    typeof err?.status === "number" && err.status >= 400 ? err.status : 500;
+
+  return {
+    status,
+    payload: {
+      error: {
+        message,
+        ...(type ? { type } : {}),
+        ...(code ? { code } : {}),
+      },
+    },
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -79,15 +121,6 @@ export async function POST(req: NextRequest) {
 
     const trimmedHistory = history.slice(-2);
 
-    // Build chat session
-    const chat = ai.chats.create({
-      model: "gemini-2.5-flash",
-      history: trimmedHistory.map((msg) => ({
-        role: msg.role === "user" ? "user" : "model", // use "model" for gemini
-        parts: [{ text: msg.content }],
-      })),
-    });
-
     const finalPrompt = `
 ${systemPrompt}
 
@@ -98,22 +131,40 @@ Question:
 ${latestMessage}
 `;
 
-    // Start streaming response
-    const stream = await chat.sendMessageStream({
-      message: finalPrompt,
+    const stream = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        ...trimmedHistory.map((m) => ({
+          role: (m.role === "user"
+            ? "user"
+            : "assistant") as ChatCompletionUserMessageParam["role"],
+          content: m.content,
+        })),
+        {
+          role: "user",
+          content: finalPrompt,
+        },
+      ],
+      stream: true,
+      stop: null,
     });
 
     const readable = new ReadableStream({
       async start(controller) {
+        let hasErrored = false;
+
         try {
           for await (const chunk of stream) {
-            const text = chunk.text ?? "";
+            const text = chunk.choices[0].delta.content ?? "";
             if (text) controller.enqueue(new TextEncoder().encode(text));
           }
         } catch (err) {
+          hasErrored = true;
           controller.error(err);
         } finally {
-          controller.close();
+          if (!hasErrored) {
+            controller.close();
+          }
         }
       },
     });
@@ -125,8 +176,12 @@ ${latestMessage}
       },
     });
   } catch (error) {
-    const errorMessage = getErrorMessage(error);
-    console.error("Error in /api/chat:", errorMessage);
-    return new Response(`Error: ${errorMessage}`, { status: 500 });
+    const normalized = normalizeError(error);
+
+    console.error("Error in /api/chat:", normalized.payload.error);
+
+    return Response.json(normalized.payload, {
+      status: normalized.status,
+    });
   }
 }

@@ -1,8 +1,8 @@
-# Soham AI Powered by Gemini
+# Soham AI Powered by Groq
 
 ## Features
 
-- Gemini AI integration
+- Groq AI integration
 - Streaming response
 - Custom context added with my (Soham) info
 - Error handling, loading handling
@@ -11,7 +11,7 @@
 
 - Next.js, server actions
 - Typescript
-- Gemini API
+- Groq API
 - AI SDK by vercel
 - Tailwind CSS
 - Shadcn UI

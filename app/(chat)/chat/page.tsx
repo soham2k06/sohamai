@@ -29,17 +29,25 @@ async function streamChatResponse(
       let message = `Request failed (${res.status})`;
 
       try {
-        const data = await res.json();
-        if (data?.error?.message) {
-          message = data.error.message;
+        const raw = await res.text();
+
+        if (raw) {
+          try {
+            const data = JSON.parse(raw) as {
+              error?: { message?: string };
+              message?: string;
+            };
+
+            if (data?.error?.message) {
+              message = data.error.message;
+            } else if (data?.message) {
+              message = data.message;
+            }
+          } catch {
+            message = raw;
+          }
         }
-      } catch {
-        // try text fallback instead of using err.message
-        try {
-          const text = await res.text();
-          if (text) message = text;
-        } catch {}
-      }
+      } catch {}
 
       onError?.(message);
       return;

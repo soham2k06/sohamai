@@ -4,9 +4,9 @@ import "./globals.css";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Soham Bhikadiya | Gemini",
+  title: "Soham AI",
   description:
-    "An AI Gemini Chat is a chat application that uses AI to generate responses. Custom fine tuning of the model that gives information about me",
+    "A chat application that uses AI to generate responses. Custom fine tuning of the model that gives information about me",
 };
 
 export default function Layout({
